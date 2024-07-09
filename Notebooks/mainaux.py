@@ -124,3 +124,24 @@ def get_director(director:str):
 #funcion recomendacion 
 cosine_sim=np.load(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\cosine_sim.npy')
 indices = pd.Series(df_ml.index, index=df_ml['title']).drop_duplicates()
+
+
+def get_recommendations(title, cosine_sim=cosine_sim):
+    if title not in indices:
+        return "El título ingresado no se encuentra en el dataset, por favor vuelva a intentar"
+    
+    idx = indices[title]
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:6]
+    movie_indices = [i[0] for i in sim_scores]
+    
+    return df_ml['title'].iloc[movie_indices].tolist()
+
+
+@app.get('/get_recomendacion/{title}')
+def get_recomendacion(title: str):
+    recommendations = get_recommendations(title)
+    if recommendations is None:
+        return {'El titulo ingresado no se encuentra en el dataset, vuelva a intentar'}
+    return {"title": title, "recomendaciones": recommendations}
