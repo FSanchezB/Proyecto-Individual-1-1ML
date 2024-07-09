@@ -121,11 +121,39 @@ def get_director(director:str):
     return {f'{director} ha drigido {peliculas_aparicion_count} peliculas con un retorno total de {retorno_total} y sus peliculas con las siguientes: '},{"Peliculas dirigidas":peliculas_info}
 
 
-#funcion recomendacion 
-cosine_sim=np.load(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\cosine_sim.npy')
+import pandas as pd
+import numpy as np
+import gdown
+import os
+
+file_id = '1IgvMKbuRvi1s0hlq9ZTCrCL31HThULfV'
+download_url = f'https://drive.google.com/uc?id={file_id}'
+output_file = 'cosine_sim.npy'
+
+cosine_sim = None
+
+@app.on_event("startup")
+async def startup_event():
+    global cosine_sim
+
+    # Download the file
+    gdown.download(download_url, output_file, quiet=False)
+
+    # Verify the file exists
+    if os.path.exists(output_file):
+        print(f"{output_file} successfully downloaded")
+    else:
+        print("Download failed")
+        return  # Exit the function if download failed
+
+    # Load the cosine similarity matrix
+    cosine_sim = np.load(output_file, allow_pickle=True)
+    print(f"Cosine similarity matrix loaded from {output_file}")
+
+# Create indices for looking up movie titles
 indices = pd.Series(df_ml.index, index=df_ml['title']).drop_duplicates()
 
-
+# Define the recommendation function
 def get_recommendations(title, cosine_sim=cosine_sim):
     if title not in indices:
         return "El título ingresado no se encuentra en el dataset, por favor vuelva a intentar"
@@ -138,10 +166,10 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     
     return df_ml['title'].iloc[movie_indices].tolist()
 
-
+# Define the recommendation endpoint
 @app.get('/get_recomendacion/{title}')
 def get_recomendacion(title: str):
     recommendations = get_recommendations(title)
-    if recommendations is None:
-        return {'El titulo ingresado no se encuentra en el dataset, vuelva a intentar'}
-    return {"title": title, "recomendaciones": recommendations}
+    if isinstance(recommendations, str):
+        return {"Error, intente de nuevo"}
+    return {"title": title, "recommendations": recommendations}
