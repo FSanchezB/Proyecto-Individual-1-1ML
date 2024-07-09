@@ -119,8 +119,3 @@ def get_director(director:str):
     peliculas_info = df_dir[['title', 'release_date', 'return', 'budget', 'revenue']].to_dict(orient='records')
 
     return {f'{director} ha drigido {peliculas_aparicion_count} peliculas con un retorno total de {retorno_total} y sus peliculas con las siguientes: '},{"Peliculas dirigidas":peliculas_info}
-
-
-#funcion recomendacion 
-cosine_sim=np.load(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\cosine_sim.npy')
-indices = pd.Series(df_ml.index, index=df_ml['title']).drop_duplicates()
