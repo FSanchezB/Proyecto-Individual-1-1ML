@@ -1,8 +1,9 @@
 import pandas as pd
-df=pd.read_csv(r'C:\Users\Fernando\Desktop\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\movies_procesado')
-df_directores=pd.read_csv(r'C:\Users\Fernando\Desktop\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\directores_procesado')
-df_actores=pd.read_csv(r'C:\Users\Fernando\Desktop\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\actores_procesado')
-df_ml=pd.read_csv(r'C:\Users\Fernando\Desktop\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\data_ml')
+import numpy as np
+df=pd.read_csv(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\movies_procesado')
+df_directores=pd.read_csv(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\directores_procesado')
+df_actores=pd.read_csv(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\actores_procesado')
+df_ml=pd.read_csv(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\data_funcion_recomendacion')
 df.drop('Unnamed: 0',axis=1,inplace=True)
 
 from fastapi import FastAPI
@@ -120,30 +121,27 @@ def get_director(director:str):
     return {f'{director} ha drigido {peliculas_aparicion_count} peliculas con un retorno total de {retorno_total} y sus peliculas con las siguientes: '},{"Peliculas dirigidas":peliculas_info}
 
 
-
-
 #funcion recomendacion 
-from sklearn.feature_extraction.text import TfidfVectorizer
-tfidf = TfidfVectorizer(stop_words='english')
-matriz_tfidf_1 = tfidf.fit_transform(df_ml['combined_features'])
-
-from sklearn.metrics.pairwise import cosine_similarity
-cosine_sim = cosine_similarity(matriz_tfidf_1, matriz_tfidf_1)
-
+cosine_sim=np.load(r'C:\Proyecto 1\Proyecto-Individual-1-ML\data procesada para funciones\cosine_sim.npy')
 indices = pd.Series(df_ml.index, index=df_ml['title']).drop_duplicates()
 
-@app.get('/get_recomendacion/{titulo}')
-def get_recomendacion(title:str, cosine_sim=cosine_sim):
+
+def get_recommendations(title, cosine_sim=cosine_sim):
     if title not in indices:
-        return "El titulo ingresado no se encuentra en el dataset, por favor vuelva a intentar"
+        return "El título ingresado no se encuentra en el dataset, por favor vuelva a intentar"
+    
     idx = indices[title]
-
     sim_scores = list(enumerate(cosine_sim[idx]))
-
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-
     sim_scores = sim_scores[1:6]
-
     movie_indices = [i[0] for i in sim_scores]
+    
+    return df_ml['title'].iloc[movie_indices].tolist()
 
-    return {df_ml['title'].iloc[movie_indices]}
+
+@app.get('/get_recomendacion/{title}')
+def get_recomendacion(title: str):
+    recommendations = get_recommendations(title)
+    if recommendations is None:
+        return {'El titulo ingresado no se encuentra en el dataset, vuelva a intentar'}
+    return {"title": title, "recomendaciones": recommendations}
