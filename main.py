@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-df=pd.read_csv('data procesada para funciones/movies_procesado')
-df_directores=pd.read_csv('data procesada para funciones/directores_procesado')
-df_actores=pd.read_csv('data procesada para funciones/actores_procesado')
+df=pd.read_csv('data procesada para funciones/movies_reducido')
+df_directores=pd.read_csv('data procesada para funciones/directores_reducido')
+df_actores=pd.read_csv('data procesada para funciones/actores_reducido')
 df_ml=pd.read_csv('data procesada para funciones/data_funcion_recomendacion')
 df.drop('Unnamed: 0',axis=1,inplace=True)
 
