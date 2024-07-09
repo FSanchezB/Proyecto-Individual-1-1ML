@@ -119,3 +119,54 @@ def get_director(director:str):
     peliculas_info = df_dir[['title', 'release_date', 'return', 'budget', 'revenue']].to_dict(orient='records')
 
     return {f'{director} ha drigido {peliculas_aparicion_count} peliculas con un retorno total de {retorno_total} y sus peliculas con las siguientes: '},{"Peliculas dirigidas":peliculas_info}
+
+
+
+import gdown
+import os
+
+file_id = '1IgvMKbuRvi1s0hlq9ZTCrCL31HThULfV'
+download_url = f'https://drive.google.com/uc?id={file_id}'
+output_file = 'cosine_sim.npy'
+
+cosine_sim = None
+
+@app.on_event("startup")
+async def startup_event():
+    global cosine_sim
+
+    
+    gdown.download(download_url, output_file, quiet=False)
+
+    
+    if os.path.exists(output_file):
+        print(f"{output_file} successfully downloaded")
+    else:
+        print("Download failed")
+        return  
+
+    
+    cosine_sim = np.load(output_file, allow_pickle=True)
+    print(f"Cosine similarity matrix loaded from {output_file}")
+
+
+indices = pd.Series(df_ml.index, index=df_ml['title']).drop_duplicates()
+
+def get_recommendations(title, cosine_sim=cosine_sim):
+    if title not in indices:
+        return "El título ingresado no se encuentra en el dataset, por favor vuelva a intentar"
+    
+    idx = indices[title]
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:6]
+    movie_indices = [i[0] for i in sim_scores]
+    
+    return df_ml['title'].iloc[movie_indices].tolist()
+
+@app.get('/get_recomendacion/{title}')
+def get_recomendacion(title: str):
+    recommendations = get_recommendations(title)
+    if isinstance(recommendations, str):
+        return {"Error, intente de nuevo"}
+    return {"title": title, "recomendaciones": recommendations}

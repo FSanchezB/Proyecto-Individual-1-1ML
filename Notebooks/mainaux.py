@@ -136,24 +136,23 @@ cosine_sim = None
 async def startup_event():
     global cosine_sim
 
-    # Download the file
+    
     gdown.download(download_url, output_file, quiet=False)
 
-    # Verify the file exists
+    
     if os.path.exists(output_file):
         print(f"{output_file} successfully downloaded")
     else:
         print("Download failed")
-        return  # Exit the function if download failed
+        return  
 
-    # Load the cosine similarity matrix
+    
     cosine_sim = np.load(output_file, allow_pickle=True)
     print(f"Cosine similarity matrix loaded from {output_file}")
 
-# Create indices for looking up movie titles
+
 indices = pd.Series(df_ml.index, index=df_ml['title']).drop_duplicates()
 
-# Define the recommendation function
 def get_recommendations(title, cosine_sim=cosine_sim):
     if title not in indices:
         return "El título ingresado no se encuentra en el dataset, por favor vuelva a intentar"
@@ -166,7 +165,6 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     
     return df_ml['title'].iloc[movie_indices].tolist()
 
-# Define the recommendation endpoint
 @app.get('/get_recomendacion/{title}')
 def get_recomendacion(title: str):
     recommendations = get_recommendations(title)
