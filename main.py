@@ -125,10 +125,9 @@ def get_director(director:str):
 import gdown
 import os
 
-file_id = '1IgvMKbuRvi1s0hlq9ZTCrCL31HThULfV'
+file_id = '15I9IucNJJPmeNUpBS1y1NCGJfaPdF2xq'
 download_url = f'https://drive.google.com/uc?id={file_id}'
 output_file = 'cosine_sim.npy'
-
 cosine_sim = None
 
 @app.on_event("startup")
